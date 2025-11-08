@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from "react";
 
 // SVG Icons
 const icons = {
@@ -68,206 +68,144 @@ const icons = {
       />
     </svg>
   ),
-}
+};
 
 interface PathwayStep {
-  type: 'degree' | 'transfer' | 'internship' | 'exam'
-  level: string
-  name: string
-  description: string
+  type: "degree" | "transfer" | "internship" | "exam";
+  level: string;
+  name: string;
+  description: string;
 }
 
 interface PathwayData {
-  title: string
-  steps: PathwayStep[]
+  title: string;
+  steps: PathwayStep[];
 }
 
 export default function Home() {
-  const [careerInput, setCareerInput] = useState('')
-  const [showClearBtn, setShowClearBtn] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [loadingMessage, setLoadingMessage] = useState('Loading...')
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalTitle, setModalTitle] = useState('MDC Details')
-  const [modalContent, setModalContent] = useState<string>('')
-  const [pathwayData, setPathwayData] = useState<PathwayData | null>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
-
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ''
-  const genModel = 'gemini-2.5-flash-preview-09-2025'
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${genModel}:generateContent?key=${apiKey}`
+  const [careerInput, setCareerInput] = useState("");
+  const [showClearBtn, setShowClearBtn] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Loading...");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("MDC Details");
+  const [modalContent, setModalContent] = useState<string>("");
+  const [pathwayData, setPathwayData] = useState<PathwayData | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    setShowClearBtn(careerInput.length > 0)
-  }, [careerInput])
+    setShowClearBtn(careerInput.length > 0);
+  }, [careerInput]);
 
   useEffect(() => {
     if (modalOpen) {
-      document.body.classList.add('modal-open')
+      document.body.classList.add("modal-open");
     } else {
-      document.body.classList.remove('modal-open')
+      document.body.classList.remove("modal-open");
     }
     return () => {
-      document.body.classList.remove('modal-open')
-    }
-  }, [modalOpen])
+      document.body.classList.remove("modal-open");
+    };
+  }, [modalOpen]);
 
   const showLoading = (message: string) => {
-    setLoadingMessage(message || 'Loading...')
-    setLoading(true)
-  }
+    setLoadingMessage(message || "Loading...");
+    setLoading(true);
+  };
 
   const hideLoading = () => {
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   const showModal = (title: string, content: string) => {
-    setModalTitle(title)
-    setModalContent(content)
-    setModalOpen(true)
-  }
+    setModalTitle(title);
+    setModalContent(content);
+    setModalOpen(true);
+  };
 
   const hideModal = () => {
-    setModalOpen(false)
-  }
+    setModalOpen(false);
+  };
 
-  const callGemini = async (payload: any, retries = 3, delay = 1000) => {
-    const abortController = new AbortController()
-    abortControllerRef.current = abortController
+  const callAPI = async (career: string, retries = 3, delay = 1000) => {
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     for (let i = 0; i < retries; i++) {
       try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+        const response = await fetch("/api/generate-pathway", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ career }),
           signal: abortController.signal,
-        })
+        });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+          const errorData = await response.json();
+          throw new Error(
+            errorData.error || `HTTP error! status: ${response.status}`
+          );
         }
 
-        const result = await response.json()
-
-        if (result.candidates && result.candidates.length > 0) {
-          return result
-        } else if (result.promptFeedback) {
-          throw new Error(`Request blocked: ${result.promptFeedback.blockReason}`)
-        } else {
-          throw new Error('No candidates returned from API.')
-        }
+        const result = await response.json();
+        return result;
       } catch (error: any) {
-        if (error.name === 'AbortError') {
-          console.log('Fetch aborted by user.')
-          throw error
+        if (error.name === "AbortError") {
+          console.log("Fetch aborted by user.");
+          throw error;
         }
-        console.error(`API call attempt ${i + 1} failed:`, error)
+        console.error(`API call attempt ${i + 1} failed:`, error);
         if (i === retries - 1) {
-          throw error
+          throw error;
         }
-        await new Promise((res) => setTimeout(res, delay * Math.pow(2, i)))
+        await new Promise((res) => setTimeout(res, delay * Math.pow(2, i)));
       } finally {
         if (i === retries - 1) {
-          abortControllerRef.current = null
+          abortControllerRef.current = null;
         }
       }
     }
-  }
+  };
 
   const handleGeneratePathway = async () => {
-    const career = careerInput.trim()
+    const career = careerInput.trim();
     if (!career) {
-      showModal('Error', '<p class="text-red-600">Please enter a career title.</p>')
-      return
+      showModal(
+        "Error",
+        '<p class="text-red-600">Please enter a career title.</p>'
+      );
+      return;
     }
 
-    showLoading(`Generating pathway for ${career}...`)
-
-    const systemPrompt = `You are a career and academic advisor at Miami Dade College (MDC). Your task is to generate an educational pathway for a student interested in a specific career.
-
-When selecting an MDC degree or certificate, use your knowledge of programs listed on MDC's official program pages (associate: https://www.mdc.edu/academics/programs/associate.aspx, bachelor: https://www.mdc.edu/academics/programs/bachelor.aspx, certificate: https://www.mdc.edu/academics/programs/certificate.aspx) to ensure the recommendation is accurate and relevant.
-
-For ANY step with type 'degree' (A.A., A.S., B.S., M.S., etc.), the 'name' field MUST contain the full, official program title, such as "Associate in Arts in Biology" or "Associate in Science in Nursing". Do not use generic names.
-
-The pathway MUST start with an MDC degree/certificate, include a transfer step if it's an A.A./A.S., and list key internships, optional or required exams/certifications, and optional advanced degrees (M.S., Ph.D.).
-
-You must only respond with a JSON object.`
-
-    const userQuery = `Generate the pathway for a "${career}".`
-
-    const pathwaySchema = {
-      type: 'OBJECT',
-      properties: {
-        title: { type: 'STRING', description: `Pathway to becoming a ${career}` },
-        steps: {
-          type: 'ARRAY',
-          items: {
-            type: 'OBJECT',
-            properties: {
-              type: {
-                type: 'STRING',
-                enum: ['degree', 'transfer', 'internship', 'exam'],
-              },
-              level: {
-                type: 'STRING',
-                description:
-                  "e.g., A.A. (MDC), B.S., M.S. (Optional), or type of step",
-              },
-              name: {
-                type: 'STRING',
-                description: 'Name of the degree, exam, or step',
-              },
-              description: {
-                type: 'STRING',
-                description: 'A 1-2 sentence description of this step.',
-              },
-            },
-            required: ['type', 'level', 'name', 'description'],
-          },
-        },
-      },
-      required: ['title', 'steps'],
-    }
-
-    const payload = {
-      contents: [{ parts: [{ text: userQuery }] }],
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseSchema: pathwaySchema,
-      },
-    }
+    showLoading(`Generating pathway for ${career}...`);
 
     try {
-      const result = await callGemini(payload)
-      const text = result.candidates[0].content.parts[0].text
-      const generatedData = JSON.parse(text)
-      setPathwayData(generatedData)
+      const generatedData = await callAPI(career);
+      setPathwayData(generatedData);
     } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error('Error generating custom pathway:', error)
+      if (error.name !== "AbortError") {
+        console.error("Error generating custom pathway:", error);
         showModal(
-          'Generation Failed',
+          "Generation Failed",
           `<p class="text-red-600">Sorry, I couldn't generate a pathway for that career. Please try a different prompt.<br><br><small>Error: ${error.message}</small></p>`
-        )
+        );
       }
     } finally {
-      hideLoading()
+      hideLoading();
     }
-  }
+  };
 
   const handleCancelLoad = () => {
     if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      console.log('Fetch request cancelled.')
+      abortControllerRef.current.abort();
+      console.log("Fetch request cancelled.");
     }
-    hideLoading()
-  }
+    hideLoading();
+  };
 
   const handleHelp = () => {
     showModal(
-      'How to use MyMDC Pathway?',
+      "How to use MyMDC Pathway?",
       `
       <div class="space-y-4 text-gray-700">
         <p>1. Type your desired career (e.g., "Software Engineer" or "Nurse") into the text box.</p>
@@ -275,24 +213,24 @@ You must only respond with a JSON object.`
         <p>3. The pathway will show you recommended degrees from MDC, potential transfer steps to universities, and other milestones like internships and exams.</p>
       </div>
     `
-    )
-  }
+    );
+  };
 
   const handleClearInput = () => {
-    setCareerInput('')
-    setShowClearBtn(false)
-  }
+    setCareerInput("");
+    setShowClearBtn(false);
+  };
 
   const handleClearPathway = () => {
-    setPathwayData(null)
-  }
+    setPathwayData(null);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      handleGeneratePathway()
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleGeneratePathway();
     }
-  }
+  };
 
   return (
     <div className="bg-white min-h-screen">
@@ -342,7 +280,7 @@ You must only respond with a JSON object.`
                   id="clear-input-btn"
                   onClick={handleClearInput}
                   title="Clear input"
-                  style={{ display: 'block' }}
+                  style={{ display: "block" }}
                 >
                   <i className="fas fa-times-circle" />
                 </span>
@@ -377,8 +315,8 @@ You must only respond with a JSON object.`
 
             <div className="flowchart-container">
               {pathwayData.steps.map((step, stepIndex) => {
-                const stepTypeClass = `flowchart-step-${step.type}`
-                const IconComponent = icons[step.type]
+                const stepTypeClass = `flowchart-step-${step.type}`;
+                const IconComponent = icons[step.type];
 
                 return (
                   <div key={stepIndex}>
@@ -397,7 +335,7 @@ You must only respond with a JSON object.`
                           {step.name}
                         </h3>
                         <p className="text-gray-600 mt-2">{step.description}</p>
-                        {step.type === 'transfer' && (
+                        {step.type === "transfer" && (
                           <a
                             href="https://www.mdc.edu/transfer-information/transfer-agreements/"
                             target="_blank"
@@ -408,21 +346,24 @@ You must only respond with a JSON object.`
                             Transfer Agreements
                           </a>
                         )}
-                        {step.type === 'degree' && step.level.includes('MDC') && (
-                          <a
-                            href={`https://www.mdc.edu/search/?q=${encodeURIComponent(step.name)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150"
-                          >
-                            <i className="fas fa-external-link-alt mr-2" /> View
-                            Program Page
-                          </a>
-                        )}
+                        {step.type === "degree" &&
+                          step.level.includes("MDC") && (
+                            <a
+                              href={`https://www.mdc.edu/search/?q=${encodeURIComponent(
+                                step.name
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150"
+                            >
+                              <i className="fas fa-external-link-alt mr-2" />{" "}
+                              View Program Page
+                            </a>
+                          )}
                       </div>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </>
@@ -455,7 +396,7 @@ You must only respond with a JSON object.`
           className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              hideModal()
+              hideModal();
             }
           }}
         >
@@ -490,6 +431,5 @@ You must only respond with a JSON object.`
         </div>
       )}
     </div>
-  )
+  );
 }
-
