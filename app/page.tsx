@@ -592,110 +592,626 @@ function isMDCAssociateInScienceProgram(programName: string): boolean {
   return false;
 }
 
-// Mapping of certifications/exams to their official websites
-const CERTIFICATION_URL_MAPPING: Record<string, string> = {
+// Mapping of certifications/exams to their official websites and requirements
+interface CertificationInfo {
+  url: string;
+  requirements: string[];
+}
+
+const CERTIFICATION_MAPPING: Record<string, CertificationInfo> = {
   // Engineering Exams
-  "fundamentals of engineering": "https://ncees.org/engineering/fe/",
-  "fe exam": "https://ncees.org/engineering/fe/",
-  "principles and practice of engineering": "https://ncees.org/engineering/pe/",
-  "pe exam": "https://ncees.org/engineering/pe/",
-  "professional engineering": "https://ncees.org/engineering/pe/",
+  "fundamentals of engineering": {
+    url: "https://ncees.org/engineering/fe/",
+    requirements: [
+      "Bachelor's degree in engineering or related field (or in final year)",
+      "Registration with state engineering board",
+      "Pass the FE exam (6-hour computer-based exam)",
+      "Valid for lifetime once passed"
+    ]
+  },
+  "fe exam": {
+    url: "https://ncees.org/engineering/fe/",
+    requirements: [
+      "Bachelor's degree in engineering or related field (or in final year)",
+      "Registration with state engineering board",
+      "Pass the FE exam (6-hour computer-based exam)",
+      "Valid for lifetime once passed"
+    ]
+  },
+  "principles and practice of engineering": {
+    url: "https://ncees.org/engineering/pe/",
+    requirements: [
+      "Passed the FE exam",
+      "Bachelor's degree in engineering from ABET-accredited program",
+      "4 years of progressive engineering experience under a PE",
+      "Pass the PE exam (8-hour exam in specific discipline)",
+      "State-specific additional requirements may apply"
+    ]
+  },
+  "pe exam": {
+    url: "https://ncees.org/engineering/pe/",
+    requirements: [
+      "Passed the FE exam",
+      "Bachelor's degree in engineering from ABET-accredited program",
+      "4 years of progressive engineering experience under a PE",
+      "Pass the PE exam (8-hour exam in specific discipline)",
+      "State-specific additional requirements may apply"
+    ]
+  },
+  "professional engineering": {
+    url: "https://ncees.org/engineering/pe/",
+    requirements: [
+      "Passed the FE exam",
+      "Bachelor's degree in engineering from ABET-accredited program",
+      "4 years of progressive engineering experience under a PE",
+      "Pass the PE exam (8-hour exam in specific discipline)",
+      "State-specific additional requirements may apply"
+    ]
+  },
   
   // Architecture Exams
-  "architect registration examination": "https://www.ncarb.org/get-licensed/are",
-  "a.r.e.": "https://www.ncarb.org/get-licensed/are",
-  "are exam": "https://www.ncarb.org/get-licensed/are",
-  "architectural experience program": "https://www.ncarb.org/get-licensed/axp",
-  "axp": "https://www.ncarb.org/get-licensed/axp",
+  "architect registration examination": {
+    url: "https://www.ncarb.org/get-licensed/are",
+    requirements: [
+      "Completed AXP (Architectural Experience Program) - 3,740 hours",
+      "Professional degree in architecture (B.Arch or M.Arch)",
+      "Pass all 6 divisions of the ARE",
+      "Meet state-specific requirements"
+    ]
+  },
+  "a.r.e.": {
+    url: "https://www.ncarb.org/get-licensed/are",
+    requirements: [
+      "Completed AXP (Architectural Experience Program) - 3,740 hours",
+      "Professional degree in architecture (B.Arch or M.Arch)",
+      "Pass all 6 divisions of the ARE",
+      "Meet state-specific requirements"
+    ]
+  },
+  "are exam": {
+    url: "https://www.ncarb.org/get-licensed/are",
+    requirements: [
+      "Completed AXP (Architectural Experience Program) - 3,740 hours",
+      "Professional degree in architecture (B.Arch or M.Arch)",
+      "Pass all 6 divisions of the ARE",
+      "Meet state-specific requirements"
+    ]
+  },
+  "architectural experience program": {
+    url: "https://www.ncarb.org/get-licensed/axp",
+    requirements: [
+      "3,740 hours of diverse professional experience",
+      "Experience must be under the supervision of a licensed architect",
+      "Documented across 6 experience areas",
+      "Can be completed while in school or after graduation"
+    ]
+  },
+  "axp": {
+    url: "https://www.ncarb.org/get-licensed/axp",
+    requirements: [
+      "3,740 hours of diverse professional experience",
+      "Experience must be under the supervision of a licensed architect",
+      "Documented across 6 experience areas",
+      "Can be completed while in school or after graduation"
+    ]
+  },
   
   // Nursing Exams
-  "nclex": "https://www.ncsbn.org/nclex.htm",
-  "nclex-rn": "https://www.ncsbn.org/nclex.htm",
-  "nclex-pn": "https://www.ncsbn.org/nclex.htm",
-  "national council licensure examination": "https://www.ncsbn.org/nclex.htm",
+  "nclex": {
+    url: "https://www.ncsbn.org/nclex.htm",
+    requirements: [
+      "Graduate from an accredited nursing program (ADN or BSN)",
+      "Apply for licensure with state board of nursing",
+      "Receive Authorization to Test (ATT)",
+      "Pass the NCLEX exam (computerized adaptive test)",
+      "Meet state-specific requirements"
+    ]
+  },
+  "nclex-rn": {
+    url: "https://www.ncsbn.org/nclex.htm",
+    requirements: [
+      "Graduate from an accredited RN program (ADN or BSN)",
+      "Apply for RN licensure with state board of nursing",
+      "Receive Authorization to Test (ATT)",
+      "Pass the NCLEX-RN exam (up to 265 questions)",
+      "Meet state-specific requirements"
+    ]
+  },
+  "nclex-pn": {
+    url: "https://www.ncsbn.org/nclex.htm",
+    requirements: [
+      "Graduate from an accredited practical/vocational nursing program",
+      "Apply for PN/LVN licensure with state board of nursing",
+      "Receive Authorization to Test (ATT)",
+      "Pass the NCLEX-PN exam (up to 205 questions)",
+      "Meet state-specific requirements"
+    ]
+  },
+  "national council licensure examination": {
+    url: "https://www.ncsbn.org/nclex.htm",
+    requirements: [
+      "Graduate from an accredited nursing program",
+      "Apply for licensure with state board of nursing",
+      "Receive Authorization to Test (ATT)",
+      "Pass the NCLEX exam",
+      "Meet state-specific requirements"
+    ]
+  },
   
   // Medical/Healthcare
-  "usmle": "https://www.usmle.org/",
-  "united states medical licensing examination": "https://www.usmle.org/",
-  "comlex": "https://www.nbome.org/",
-  "comprehensive osteopathic medical licensing examination": "https://www.nbome.org/",
-  "nabp": "https://nabp.pharmacy/",
-  "naplex": "https://nabp.pharmacy/programs/examinations/naplex/",
-  "north american pharmacist licensure examination": "https://nabp.pharmacy/programs/examinations/naplex/",
-  "dental hygiene national board": "https://www.ada.org/en/education-careers/dental-hygiene-national-board-examination",
-  "dental hygiene exam": "https://www.ada.org/en/education-careers/dental-hygiene-national-board-examination",
-  "ardms": "https://www.ardms.org/",
-  "american registry for diagnostic medical sonography": "https://www.ardms.org/",
-  "arrt": "https://www.arrt.org/",
-  "american registry of radiologic technologists": "https://www.arrt.org/",
-  "nbrc": "https://www.nbrc.org/",
-  "national board for respiratory care": "https://www.nbrc.org/",
-  "crt": "https://www.nbrc.org/",
-  "rrt": "https://www.nbrc.org/",
-  "ascls": "https://www.ascp.org/content/board-of-certification",
-  "american society for clinical laboratory science": "https://www.ascp.org/content/board-of-certification",
-  "ascp": "https://www.ascp.org/content/board-of-certification",
-  "fptb": "https://www.fsbpt.org/",
-  "federation of state boards of physical therapy": "https://www.fsbpt.org/",
-  "npte": "https://www.fsbpt.org/",
-  "national physical therapy examination": "https://www.fsbpt.org/",
+  "usmle": {
+    url: "https://www.usmle.org/",
+    requirements: [
+      "Medical degree (MD) from accredited medical school",
+      "Pass Step 1, Step 2 CK, Step 2 CS, and Step 3",
+      "Complete clinical rotations",
+      "Meet state-specific requirements"
+    ]
+  },
+  "united states medical licensing examination": {
+    url: "https://www.usmle.org/",
+    requirements: [
+      "Medical degree (MD) from accredited medical school",
+      "Pass Step 1, Step 2 CK, Step 2 CS, and Step 3",
+      "Complete clinical rotations",
+      "Meet state-specific requirements"
+    ]
+  },
+  "naplex": {
+    url: "https://nabp.pharmacy/programs/examinations/naplex/",
+    requirements: [
+      "Pharmacy degree (PharmD) from accredited program",
+      "Complete required pharmacy internships",
+      "Pass the NAPLEX exam (250 questions)",
+      "Pass state-specific MPJE exam",
+      "Meet state-specific requirements"
+    ]
+  },
+  "north american pharmacist licensure examination": {
+    url: "https://nabp.pharmacy/programs/examinations/naplex/",
+    requirements: [
+      "Pharmacy degree (PharmD) from accredited program",
+      "Complete required pharmacy internships",
+      "Pass the NAPLEX exam (250 questions)",
+      "Pass state-specific MPJE exam",
+      "Meet state-specific requirements"
+    ]
+  },
+  "dental hygiene national board": {
+    url: "https://www.ada.org/en/education-careers/dental-hygiene-national-board-examination",
+    requirements: [
+      "Graduate from accredited dental hygiene program",
+      "Pass the National Board Dental Hygiene Examination (NBDHE)",
+      "Pass state-specific clinical and written exams",
+      "Meet state-specific requirements"
+    ]
+  },
+  "dental hygiene exam": {
+    url: "https://www.ada.org/en/education-careers/dental-hygiene-national-board-examination",
+    requirements: [
+      "Graduate from accredited dental hygiene program",
+      "Pass the National Board Dental Hygiene Examination (NBDHE)",
+      "Pass state-specific clinical and written exams",
+      "Meet state-specific requirements"
+    ]
+  },
+  "ardms": {
+    url: "https://www.ardms.org/",
+    requirements: [
+      "Graduate from accredited diagnostic medical sonography program",
+      "Complete clinical experience requirements",
+      "Pass ARDMS certification exam in specialty area",
+      "Maintain continuing education credits"
+    ]
+  },
+  "american registry for diagnostic medical sonography": {
+    url: "https://www.ardms.org/",
+    requirements: [
+      "Graduate from accredited diagnostic medical sonography program",
+      "Complete clinical experience requirements",
+      "Pass ARDMS certification exam in specialty area",
+      "Maintain continuing education credits"
+    ]
+  },
+  "arrt": {
+    url: "https://www.arrt.org/",
+    requirements: [
+      "Graduate from accredited radiologic technology program",
+      "Complete clinical experience requirements",
+      "Pass ARRT certification exam",
+      "Meet ethics requirements",
+      "Maintain continuing education credits"
+    ]
+  },
+  "american registry of radiologic technologists": {
+    url: "https://www.arrt.org/",
+    requirements: [
+      "Graduate from accredited radiologic technology program",
+      "Complete clinical experience requirements",
+      "Pass ARRT certification exam",
+      "Meet ethics requirements",
+      "Maintain continuing education credits"
+    ]
+  },
+  "nbrc": {
+    url: "https://www.nbrc.org/",
+    requirements: [
+      "Graduate from accredited respiratory care program",
+      "Pass CRT (Certified Respiratory Therapist) exam",
+      "For RRT: Pass additional advanced level exams",
+      "Maintain continuing education credits"
+    ]
+  },
+  "national board for respiratory care": {
+    url: "https://www.nbrc.org/",
+    requirements: [
+      "Graduate from accredited respiratory care program",
+      "Pass CRT (Certified Respiratory Therapist) exam",
+      "For RRT: Pass additional advanced level exams",
+      "Maintain continuing education credits"
+    ]
+  },
+  "crt": {
+    url: "https://www.nbrc.org/",
+    requirements: [
+      "Graduate from accredited respiratory care program",
+      "Pass CRT (Certified Respiratory Therapist) exam",
+      "Maintain continuing education credits"
+    ]
+  },
+  "rrt": {
+    url: "https://www.nbrc.org/",
+    requirements: [
+      "Hold CRT certification",
+      "Pass RRT (Registered Respiratory Therapist) written exam",
+      "Pass RRT clinical simulation exam",
+      "Maintain continuing education credits"
+    ]
+  },
+  "npte": {
+    url: "https://www.fsbpt.org/",
+    requirements: [
+      "Graduate from accredited physical therapy program (DPT)",
+      "Complete required clinical hours",
+      "Pass the NPTE (National Physical Therapy Examination)",
+      "Meet state-specific requirements",
+      "Pass state jurisprudence exam (if required)"
+    ]
+  },
+  "national physical therapy examination": {
+    url: "https://www.fsbpt.org/",
+    requirements: [
+      "Graduate from accredited physical therapy program (DPT)",
+      "Complete required clinical hours",
+      "Pass the NPTE (National Physical Therapy Examination)",
+      "Meet state-specific requirements",
+      "Pass state jurisprudence exam (if required)"
+    ]
+  },
   
   // Legal
-  "bar exam": "https://www.ncbex.org/",
-  "multistate bar examination": "https://www.ncbex.org/",
-  "mbe": "https://www.ncbex.org/",
-  "florida bar": "https://www.floridabar.org/",
+  "bar exam": {
+    url: "https://www.ncbex.org/",
+    requirements: [
+      "Juris Doctor (JD) degree from accredited law school",
+      "Pass the Multistate Bar Examination (MBE)",
+      "Pass state-specific bar exam components",
+      "Pass Multistate Professional Responsibility Examination (MPRE)",
+      "Meet state-specific character and fitness requirements"
+    ]
+  },
+  "florida bar": {
+    url: "https://www.floridabar.org/",
+    requirements: [
+      "Juris Doctor (JD) degree from accredited law school",
+      "Pass the Florida Bar Examination",
+      "Pass the Multistate Professional Responsibility Examination (MPRE)",
+      "Complete Florida Law Component",
+      "Meet character and fitness requirements"
+    ]
+  },
   
   // IT/Cybersecurity
-  "comptia": "https://www.comptia.org/",
-  "a+": "https://www.comptia.org/certifications/a",
-  "network+": "https://www.comptia.org/certifications/network",
-  "security+": "https://www.comptia.org/certifications/security",
-  "cissp": "https://www.isc2.org/certifications/cissp",
-  "certified information systems security professional": "https://www.isc2.org/certifications/cissp",
-  "pmp": "https://www.pmi.org/certifications/project-management-pmp",
-  "project management professional": "https://www.pmi.org/certifications/project-management-pmp",
-  "aws": "https://aws.amazon.com/certification/",
-  "amazon web services": "https://aws.amazon.com/certification/",
-  "microsoft azure": "https://learn.microsoft.com/en-us/credentials/",
-  "google cloud": "https://cloud.google.com/certification",
-  "ccna": "https://www.cisco.com/c/en/us/training-events/training-certifications/certifications/associate/ccna.html",
-  "cisco certified network associate": "https://www.cisco.com/c/en/us/training-events/training-certifications/certifications/associate/ccna.html",
-  "ceh": "https://www.eccouncil.org/certification/certified-ethical-hacker-ceh/",
-  "certified ethical hacker": "https://www.eccouncil.org/certification/certified-ethical-hacker-ceh/",
+  "comptia a+": {
+    url: "https://www.comptia.org/certifications/a",
+    requirements: [
+      "No formal prerequisites required",
+      "Recommended: 9-12 months hands-on experience",
+      "Pass two exams: Core 1 and Core 2",
+      "Renew every 3 years through continuing education"
+    ]
+  },
+  "a+": {
+    url: "https://www.comptia.org/certifications/a",
+    requirements: [
+      "No formal prerequisites required",
+      "Recommended: 9-12 months hands-on experience",
+      "Pass two exams: Core 1 and Core 2",
+      "Renew every 3 years through continuing education"
+    ]
+  },
+  "security+": {
+    url: "https://www.comptia.org/certifications/security",
+    requirements: [
+      "Recommended: Network+ and 2 years IT security experience",
+      "Pass one exam covering security concepts",
+      "Renew every 3 years through continuing education"
+    ]
+  },
+  "cissp": {
+    url: "https://www.isc2.org/certifications/cissp",
+    requirements: [
+      "5 years of cumulative paid work experience in 2+ domains",
+      "OR 4 years with a college degree or approved credential",
+      "Pass the CISSP exam (250 questions, 6 hours)",
+      "Endorsement from another CISSP",
+      "Maintain continuing education credits"
+    ]
+  },
+  "certified information systems security professional": {
+    url: "https://www.isc2.org/certifications/cissp",
+    requirements: [
+      "5 years of cumulative paid work experience in 2+ domains",
+      "OR 4 years with a college degree or approved credential",
+      "Pass the CISSP exam (250 questions, 6 hours)",
+      "Endorsement from another CISSP",
+      "Maintain continuing education credits"
+    ]
+  },
+  "pmp": {
+    url: "https://www.pmi.org/certifications/project-management-pmp",
+    requirements: [
+      "4-year degree + 36 months leading projects + 35 hours project management education",
+      "OR High school diploma + 60 months leading projects + 35 hours project management education",
+      "Pass the PMP exam (180 questions, 230 minutes)",
+      "Maintain continuing education credits (60 PDUs every 3 years)"
+    ]
+  },
+  "project management professional": {
+    url: "https://www.pmi.org/certifications/project-management-pmp",
+    requirements: [
+      "4-year degree + 36 months leading projects + 35 hours project management education",
+      "OR High school diploma + 60 months leading projects + 35 hours project management education",
+      "Pass the PMP exam (180 questions, 230 minutes)",
+      "Maintain continuing education credits (60 PDUs every 3 years)"
+    ]
+  },
   
   // Teaching
-  "ftce": "https://www.fl.nesinc.com/",
-  "florida teacher certification examinations": "https://www.fl.nesinc.com/",
-  "praxis": "https://www.ets.org/praxis",
-  "praxis exam": "https://www.ets.org/praxis",
+  "ftce": {
+    url: "https://www.fl.nesinc.com/",
+    requirements: [
+      "Bachelor's degree from accredited institution",
+      "Complete approved teacher preparation program",
+      "Pass Florida Teacher Certification Examinations (FTCE)",
+      "Pass subject area exam for certification field",
+      "Pass General Knowledge Test",
+      "Pass Professional Education Test"
+    ]
+  },
+  "florida teacher certification examinations": {
+    url: "https://www.fl.nesinc.com/",
+    requirements: [
+      "Bachelor's degree from accredited institution",
+      "Complete approved teacher preparation program",
+      "Pass Florida Teacher Certification Examinations (FTCE)",
+      "Pass subject area exam for certification field",
+      "Pass General Knowledge Test",
+      "Pass Professional Education Test"
+    ]
+  },
   
   // Aviation
-  "faa": "https://www.faa.gov/licenses_certificates/",
-  "federal aviation administration": "https://www.faa.gov/licenses_certificates/",
-  "atp": "https://www.faa.gov/licenses_certificates/airmen_certification/airline_transport_pilot/",
-  "airline transport pilot": "https://www.faa.gov/licenses_certificates/airmen_certification/airline_transport_pilot/",
-  "commercial pilot": "https://www.faa.gov/licenses_certificates/airmen_certification/commercial_pilot/",
+  "atp": {
+    url: "https://www.faa.gov/licenses_certificates/airmen_certification/airline_transport_pilot/",
+    requirements: [
+      "Be at least 23 years old",
+      "Hold Commercial Pilot Certificate",
+      "1,500 hours total flight time",
+      "500 hours cross-country flight time",
+      "100 hours night flight time",
+      "75 hours instrument time",
+      "Pass written, oral, and flight tests"
+    ]
+  },
+  "airline transport pilot": {
+    url: "https://www.faa.gov/licenses_certificates/airmen_certification/airline_transport_pilot/",
+    requirements: [
+      "Be at least 23 years old",
+      "Hold Commercial Pilot Certificate",
+      "1,500 hours total flight time",
+      "500 hours cross-country flight time",
+      "100 hours night flight time",
+      "75 hours instrument time",
+      "Pass written, oral, and flight tests"
+    ]
+  },
   
   // Other Professional
-  "cpa": "https://www.aicpa-cima.com/cpa-exam",
-  "certified public accountant": "https://www.aicpa-cima.com/cpa-exam",
-  "cma": "https://www.imanet.org/cma-certification",
-  "certified management accountant": "https://www.imanet.org/cma-certification",
-  "cfp": "https://www.cfp.net/",
-  "certified financial planner": "https://www.cfp.net/",
-  "real estate": "https://www.myfloridalicense.com/CheckLicense2/",
-  "florida real estate": "https://www.myfloridalicense.com/CheckLicense2/",
+  "cpa": {
+    url: "https://www.aicpa-cima.com/cpa-exam",
+    requirements: [
+      "Bachelor's degree (150 semester hours total)",
+      "Complete accounting coursework requirements",
+      "Pass all 4 sections of the Uniform CPA Examination",
+      "Complete ethics exam (state-specific)",
+      "Meet state-specific experience requirements",
+      "Meet state-specific residency requirements"
+    ]
+  },
+  "certified public accountant": {
+    url: "https://www.aicpa-cima.com/cpa-exam",
+    requirements: [
+      "Bachelor's degree (150 semester hours total)",
+      "Complete accounting coursework requirements",
+      "Pass all 4 sections of the Uniform CPA Examination",
+      "Complete ethics exam (state-specific)",
+      "Meet state-specific experience requirements",
+      "Meet state-specific residency requirements"
+    ]
+  },
 };
 
-// Helper function to get certification/exam URL
-function getCertificationUrl(examName: string): string | null {
+// Florida (In-State) University Transfer Recommendations
+interface UniversityInfo {
+  name: string;
+  website: string;
+  location: string;
+  type: string; // "Public" or "Private"
+  notes?: string;
+}
+
+const FLORIDA_UNIVERSITIES: UniversityInfo[] = [
+  {
+    name: "University of Florida (UF)",
+    website: "https://www.ufl.edu/",
+    location: "Gainesville",
+    type: "Public",
+    notes: "Flagship state university, strong articulation agreements with MDC",
+  },
+  {
+    name: "Florida State University (FSU)",
+    website: "https://www.fsu.edu/",
+    location: "Tallahassee",
+    type: "Public",
+    notes: "Major research university, excellent transfer pathways",
+  },
+  {
+    name: "University of South Florida (USF)",
+    website: "https://www.usf.edu/",
+    location: "Tampa",
+    type: "Public",
+    notes: "Multiple campuses, strong engineering and business programs",
+  },
+  {
+    name: "Florida International University (FIU)",
+    website: "https://www.fiu.edu/",
+    location: "Miami",
+    type: "Public",
+    notes: "Local option in Miami, strong transfer agreements with MDC",
+  },
+  {
+    name: "University of Central Florida (UCF)",
+    website: "https://www.ucf.edu/",
+    location: "Orlando",
+    type: "Public",
+    notes: "Largest university in Florida, excellent engineering and hospitality programs",
+  },
+  {
+    name: "Florida Atlantic University (FAU)",
+    website: "https://www.fau.edu/",
+    location: "Boca Raton",
+    type: "Public",
+    notes: "Multiple campuses in South Florida, strong business and engineering programs",
+  },
+  {
+    name: "Florida A&M University (FAMU)",
+    website: "https://www.famu.edu/",
+    location: "Tallahassee",
+    type: "Public",
+    notes: "Historically Black University, strong programs in pharmacy and engineering",
+  },
+  {
+    name: "University of North Florida (UNF)",
+    website: "https://www.unf.edu/",
+    location: "Jacksonville",
+    type: "Public",
+    notes: "Strong business and health sciences programs",
+  },
+  {
+    name: "Florida Gulf Coast University (FGCU)",
+    website: "https://www.fgcu.edu/",
+    location: "Fort Myers",
+    type: "Public",
+    notes: "Growing university with strong environmental and business programs",
+  },
+  {
+    name: "University of West Florida (UWF)",
+    website: "https://uwf.edu/",
+    location: "Pensacola",
+    type: "Public",
+    notes: "Strong programs in business, education, and health sciences",
+  },
+  {
+    name: "New College of Florida",
+    website: "https://www.ncf.edu/",
+    location: "Sarasota",
+    type: "Public",
+    notes: "Small liberal arts honors college, unique academic structure",
+  },
+  {
+    name: "Florida Polytechnic University",
+    website: "https://www.floridapoly.edu/",
+    location: "Lakeland",
+    type: "Public",
+    notes: "STEM-focused university, strong engineering and technology programs",
+  },
+  {
+    name: "University of Miami",
+    website: "https://welcome.miami.edu/",
+    location: "Coral Gables",
+    type: "Private",
+    notes: "Private research university, strong programs across disciplines",
+  },
+  {
+    name: "Nova Southeastern University (NSU)",
+    website: "https://www.nova.edu/",
+    location: "Fort Lauderdale",
+    type: "Private",
+    notes: "Private university with strong health sciences and law programs",
+  },
+  {
+    name: "Florida Institute of Technology (FIT)",
+    website: "https://www.fit.edu/",
+    location: "Melbourne",
+    type: "Private",
+    notes: "STEM-focused private university, strong engineering and aviation programs",
+  },
+  {
+    name: "Rollins College",
+    website: "https://www.rollins.edu/",
+    location: "Winter Park",
+    type: "Private",
+    notes: "Private liberal arts college, strong business and arts programs",
+  },
+  {
+    name: "Stetson University",
+    website: "https://www.stetson.edu/",
+    location: "DeLand",
+    type: "Private",
+    notes: "Private university, strong programs in business, law, and music",
+  },
+  {
+    name: "Barry University",
+    website: "https://www.barry.edu/",
+    location: "Miami Shores",
+    type: "Private",
+    notes: "Private Catholic university, strong health sciences and education programs",
+  },
+  {
+    name: "St. Thomas University",
+    website: "https://www.stu.edu/",
+    location: "Miami Gardens",
+    type: "Private",
+    notes: "Private Catholic university, strong business and law programs",
+  },
+  {
+    name: "Lynn University",
+    website: "https://www.lynn.edu/",
+    location: "Boca Raton",
+    type: "Private",
+    notes: "Private university, strong hospitality and business programs",
+  },
+];
+
+// Helper function to get certification/exam info (URL and requirements)
+function getCertificationInfo(examName: string): CertificationInfo | null {
   const normalizedName = examName.toLowerCase().trim();
   
   // Try to find a match in the mapping
-  for (const [key, url] of Object.entries(CERTIFICATION_URL_MAPPING)) {
+  for (const [key, info] of Object.entries(CERTIFICATION_MAPPING)) {
     if (normalizedName.includes(key) || key.includes(normalizedName)) {
-      return url;
+      return info;
     }
   }
   
@@ -773,6 +1289,12 @@ export default function Home() {
   const [modalTitle, setModalTitle] = useState("MDC Details");
   const [modalContent, setModalContent] = useState<string>("");
   const [pathwayData, setPathwayData] = useState<PathwayData | null>(null);
+  const [certificationPopup, setCertificationPopup] = useState<{
+    name: string;
+    info: CertificationInfo;
+  } | null>(null);
+  const [transferRecommendationsPopup, setTransferRecommendationsPopup] =
+    useState<boolean>(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -864,6 +1386,8 @@ export default function Home() {
     try {
       const generatedData = await callAPI(career);
       setPathwayData(generatedData);
+      setCertificationPopup(null); // Close popup when new pathway is generated
+      setTransferRecommendationsPopup(false); // Close transfer popup when new pathway is generated
     } catch (error: any) {
       if (error.name !== "AbortError") {
         console.error("Error generating custom pathway:", error);
@@ -905,6 +1429,8 @@ export default function Home() {
 
   const handleClearPathway = () => {
     setPathwayData(null);
+    setCertificationPopup(null); // Close popup when pathway is cleared
+    setTransferRecommendationsPopup(false); // Close transfer popup when pathway is cleared
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -1018,15 +1544,24 @@ export default function Home() {
                         </h3>
                         <p className="text-gray-600 mt-2">{step.description}</p>
                         {step.type === "transfer" && (
-                          <a
-                            href="https://www.mdc.edu/transfer-information/transfer-agreements/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition duration-150"
-                          >
-                            <i className="fas fa-external-link-alt mr-2" /> View
-                            Transfer Agreements
-                          </a>
+                          <div className="mt-4 space-y-2">
+                            <button
+                              onClick={() => setTransferRecommendationsPopup(true)}
+                              className="w-full text-left text-sm font-semibold text-orange-700 hover:text-orange-800 focus:outline-none focus:underline flex items-center"
+                            >
+                              <i className="fas fa-info-circle mr-2" />
+                              Recommendations
+                            </button>
+                            <a
+                              href="https://www.mdc.edu/transfer-information/transfer-agreements/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition duration-150"
+                            >
+                              <i className="fas fa-external-link-alt mr-2" /> View
+                              Transfer Agreements
+                            </a>
+                          </div>
                         )}
                         {step.type === "degree" &&
                           ((step.level.includes("MDC") &&
@@ -1048,17 +1583,31 @@ export default function Home() {
                           )}
                         {step.type === "exam" && (
                           (() => {
-                            const certUrl = getCertificationUrl(step.name);
-                            return certUrl ? (
-                              <a
-                                href={certUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150"
-                              >
-                                <i className="fas fa-external-link-alt mr-2" />{" "}
-                                View Certification Info
-                              </a>
+                            const certInfo = getCertificationInfo(step.name);
+                            return certInfo ? (
+                              <div className="mt-4 space-y-2">
+                                <button
+                                  onClick={() =>
+                                    setCertificationPopup({
+                                      name: step.name,
+                                      info: certInfo,
+                                    })
+                                  }
+                                  className="w-full text-left text-sm font-semibold text-purple-700 hover:text-purple-800 focus:outline-none focus:underline flex items-center"
+                                >
+                                  <i className="fas fa-info-circle mr-2" />
+                                  Requirements
+                                </button>
+                                <a
+                                  href={certInfo.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150"
+                                >
+                                  <i className="fas fa-external-link-alt mr-2" />{" "}
+                                  View Certification Website
+                                </a>
+                              </div>
                             ) : null;
                           })()
                         )}
@@ -1088,6 +1637,125 @@ export default function Home() {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer Recommendations Popup */}
+      {transferRecommendationsPopup && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          onClick={() => setTransferRecommendationsPopup(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="p-5 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-lg font-bold text-gray-800">
+                Florida (In-State) University Transfer Recommendations
+              </h2>
+              <button
+                onClick={() => setTransferRecommendationsPopup(false)}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <i className="fas fa-times text-xl" />
+              </button>
+            </header>
+            <main className="p-6 overflow-y-auto">
+              <p className="text-sm text-gray-600 mb-4">
+                MDC has strong articulation agreements with these Florida
+                universities. Consider these options for your transfer:
+              </p>
+              <div className="space-y-4">
+                {FLORIDA_UNIVERSITIES.map((university, idx) => (
+                  <div
+                    key={idx}
+                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {university.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {university.location} • {university.type}
+                        </p>
+                      </div>
+                      <a
+                        href={university.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center"
+                      >
+                        Visit <i className="fas fa-external-link-alt ml-1 text-xs" />
+                      </a>
+                    </div>
+                    {university.notes && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        {university.notes}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <a
+                  href="https://www.mdc.edu/transfer-information/transfer-agreements/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition duration-150"
+                >
+                  <i className="fas fa-external-link-alt mr-2" /> View MDC
+                  Transfer Agreements
+                </a>
+              </div>
+            </main>
+          </div>
+        </div>
+      )}
+
+      {/* Certification Requirements Popup */}
+      {certificationPopup && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          onClick={() => setCertificationPopup(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="p-5 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-lg font-bold text-gray-800">
+                {certificationPopup.name} - Requirements
+              </h2>
+              <button
+                onClick={() => setCertificationPopup(null)}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <i className="fas fa-times text-xl" />
+              </button>
+            </header>
+            <main className="p-6 overflow-y-auto">
+              <ul className="space-y-2 text-sm text-gray-700 pl-5">
+                {certificationPopup.info.requirements.map((req, idx) => (
+                  <li key={idx} className="leading-relaxed list-disc list-outside">
+                    {req}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <a
+                  href={certificationPopup.info.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150"
+                >
+                  <i className="fas fa-external-link-alt mr-2" />{" "}
+                  Visit Official Website
+                </a>
+              </div>
+            </main>
           </div>
         </div>
       )}
