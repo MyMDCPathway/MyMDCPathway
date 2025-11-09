@@ -592,6 +592,116 @@ function isMDCAssociateInScienceProgram(programName: string): boolean {
   return false;
 }
 
+// Mapping of certifications/exams to their official websites
+const CERTIFICATION_URL_MAPPING: Record<string, string> = {
+  // Engineering Exams
+  "fundamentals of engineering": "https://ncees.org/engineering/fe/",
+  "fe exam": "https://ncees.org/engineering/fe/",
+  "principles and practice of engineering": "https://ncees.org/engineering/pe/",
+  "pe exam": "https://ncees.org/engineering/pe/",
+  "professional engineering": "https://ncees.org/engineering/pe/",
+  
+  // Architecture Exams
+  "architect registration examination": "https://www.ncarb.org/get-licensed/are",
+  "a.r.e.": "https://www.ncarb.org/get-licensed/are",
+  "are exam": "https://www.ncarb.org/get-licensed/are",
+  "architectural experience program": "https://www.ncarb.org/get-licensed/axp",
+  "axp": "https://www.ncarb.org/get-licensed/axp",
+  
+  // Nursing Exams
+  "nclex": "https://www.ncsbn.org/nclex.htm",
+  "nclex-rn": "https://www.ncsbn.org/nclex.htm",
+  "nclex-pn": "https://www.ncsbn.org/nclex.htm",
+  "national council licensure examination": "https://www.ncsbn.org/nclex.htm",
+  
+  // Medical/Healthcare
+  "usmle": "https://www.usmle.org/",
+  "united states medical licensing examination": "https://www.usmle.org/",
+  "comlex": "https://www.nbome.org/",
+  "comprehensive osteopathic medical licensing examination": "https://www.nbome.org/",
+  "nabp": "https://nabp.pharmacy/",
+  "naplex": "https://nabp.pharmacy/programs/examinations/naplex/",
+  "north american pharmacist licensure examination": "https://nabp.pharmacy/programs/examinations/naplex/",
+  "dental hygiene national board": "https://www.ada.org/en/education-careers/dental-hygiene-national-board-examination",
+  "dental hygiene exam": "https://www.ada.org/en/education-careers/dental-hygiene-national-board-examination",
+  "ardms": "https://www.ardms.org/",
+  "american registry for diagnostic medical sonography": "https://www.ardms.org/",
+  "arrt": "https://www.arrt.org/",
+  "american registry of radiologic technologists": "https://www.arrt.org/",
+  "nbrc": "https://www.nbrc.org/",
+  "national board for respiratory care": "https://www.nbrc.org/",
+  "crt": "https://www.nbrc.org/",
+  "rrt": "https://www.nbrc.org/",
+  "ascls": "https://www.ascp.org/content/board-of-certification",
+  "american society for clinical laboratory science": "https://www.ascp.org/content/board-of-certification",
+  "ascp": "https://www.ascp.org/content/board-of-certification",
+  "fptb": "https://www.fsbpt.org/",
+  "federation of state boards of physical therapy": "https://www.fsbpt.org/",
+  "npte": "https://www.fsbpt.org/",
+  "national physical therapy examination": "https://www.fsbpt.org/",
+  
+  // Legal
+  "bar exam": "https://www.ncbex.org/",
+  "multistate bar examination": "https://www.ncbex.org/",
+  "mbe": "https://www.ncbex.org/",
+  "florida bar": "https://www.floridabar.org/",
+  
+  // IT/Cybersecurity
+  "comptia": "https://www.comptia.org/",
+  "a+": "https://www.comptia.org/certifications/a",
+  "network+": "https://www.comptia.org/certifications/network",
+  "security+": "https://www.comptia.org/certifications/security",
+  "cissp": "https://www.isc2.org/certifications/cissp",
+  "certified information systems security professional": "https://www.isc2.org/certifications/cissp",
+  "pmp": "https://www.pmi.org/certifications/project-management-pmp",
+  "project management professional": "https://www.pmi.org/certifications/project-management-pmp",
+  "aws": "https://aws.amazon.com/certification/",
+  "amazon web services": "https://aws.amazon.com/certification/",
+  "microsoft azure": "https://learn.microsoft.com/en-us/credentials/",
+  "google cloud": "https://cloud.google.com/certification",
+  "ccna": "https://www.cisco.com/c/en/us/training-events/training-certifications/certifications/associate/ccna.html",
+  "cisco certified network associate": "https://www.cisco.com/c/en/us/training-events/training-certifications/certifications/associate/ccna.html",
+  "ceh": "https://www.eccouncil.org/certification/certified-ethical-hacker-ceh/",
+  "certified ethical hacker": "https://www.eccouncil.org/certification/certified-ethical-hacker-ceh/",
+  
+  // Teaching
+  "ftce": "https://www.fl.nesinc.com/",
+  "florida teacher certification examinations": "https://www.fl.nesinc.com/",
+  "praxis": "https://www.ets.org/praxis",
+  "praxis exam": "https://www.ets.org/praxis",
+  
+  // Aviation
+  "faa": "https://www.faa.gov/licenses_certificates/",
+  "federal aviation administration": "https://www.faa.gov/licenses_certificates/",
+  "atp": "https://www.faa.gov/licenses_certificates/airmen_certification/airline_transport_pilot/",
+  "airline transport pilot": "https://www.faa.gov/licenses_certificates/airmen_certification/airline_transport_pilot/",
+  "commercial pilot": "https://www.faa.gov/licenses_certificates/airmen_certification/commercial_pilot/",
+  
+  // Other Professional
+  "cpa": "https://www.aicpa-cima.com/cpa-exam",
+  "certified public accountant": "https://www.aicpa-cima.com/cpa-exam",
+  "cma": "https://www.imanet.org/cma-certification",
+  "certified management accountant": "https://www.imanet.org/cma-certification",
+  "cfp": "https://www.cfp.net/",
+  "certified financial planner": "https://www.cfp.net/",
+  "real estate": "https://www.myfloridalicense.com/CheckLicense2/",
+  "florida real estate": "https://www.myfloridalicense.com/CheckLicense2/",
+};
+
+// Helper function to get certification/exam URL
+function getCertificationUrl(examName: string): string | null {
+  const normalizedName = examName.toLowerCase().trim();
+  
+  // Try to find a match in the mapping
+  for (const [key, url] of Object.entries(CERTIFICATION_URL_MAPPING)) {
+    if (normalizedName.includes(key) || key.includes(normalizedName)) {
+      return url;
+    }
+  }
+  
+  return null;
+}
+
 // Helper function to convert program name to MDC URL slug
 function getMDCProgramUrl(programName: string): string {
   // Extract the first program option if multiple are listed
@@ -936,6 +1046,22 @@ export default function Home() {
                               View Program Page
                             </a>
                           )}
+                        {step.type === "exam" && (
+                          (() => {
+                            const certUrl = getCertificationUrl(step.name);
+                            return certUrl ? (
+                              <a
+                                href={certUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150"
+                              >
+                                <i className="fas fa-external-link-alt mr-2" />{" "}
+                                View Certification Info
+                              </a>
+                            ) : null;
+                          })()
+                        )}
                       </div>
                     </div>
                   </div>
